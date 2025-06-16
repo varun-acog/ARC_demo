@@ -31,8 +31,8 @@ const LandingPage: React.FC = () => {
     'Streamlined document generation process',
     'AI-powered contract analysis and insights',
     'Comprehensive change tracking and comparison',
-    'Professional Word document exports',
-    'Approval workflows with comment system',
+    // 'Professional Word document exports',
+    // 'Approval workflows with comment system',
     'Legal precedence and opinion analysis'
   ];
 

@@ -46,8 +46,8 @@ const LandingPage: React.FC = () => {
               ARC for Legal Documents
             </h1>
             <p className="text-xl mb-8 max-w-3xl mx-auto leading-relaxed opacity-90">
-              Streamline your legal document workflows with AI-powered generation, 
-              review, and comparison tools designed for modern legal professionals.
+              Streamline your legal document workflows with document generation, 
+              AI-powered review, and comparison tools designed for modern legal professionals.
             </p>
             <div className="flex justify-center space-x-4">
               <Link
@@ -73,7 +73,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Powerful Legal Document Tools
+              Legal Document Tools
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Everything you need to manage legal documents efficiently and professionally

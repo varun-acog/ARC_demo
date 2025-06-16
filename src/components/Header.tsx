@@ -23,7 +23,7 @@ const Header: React.FC = () => {
                 alt="Aganitha Logo" 
                 className="h-8 w-auto"
               />
-              <div className="text-xl font-bold text-blue-900">ARC Documents</div>
+              {/* <div className="text-xl font-bold text-blue-900">ARC Documents</div> */}
             </Link>
           </div>
           

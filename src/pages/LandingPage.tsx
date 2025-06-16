@@ -43,7 +43,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-5xl font-bold mb-6 leading-tight">
-              ARC Legal Documents
+              ARC for Legal Documents
             </h1>
             <p className="text-xl mb-8 max-w-3xl mx-auto leading-relaxed opacity-90">
               Streamline your legal document workflows with AI-powered generation, 
@@ -57,12 +57,12 @@ const LandingPage: React.FC = () => {
                 <span>Get Started</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link
+              {/* <Link
                 to="/review"
                 className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-900 transition-colors"
               >
                 Explore Features
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>
@@ -117,7 +117,7 @@ const LandingPage: React.FC = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                Why Choose ARC Documents?
+                Why Choose ARC for Documents?
               </h2>
               <p className="text-lg text-gray-600 mb-8 leading-relaxed">
                 Built specifically for legal professionals who need efficient, 

@@ -141,8 +141,8 @@ const LandingPage: React.FC = () => {
                   Ready to Get Started?
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Join thousands of legal professionals who trust ARC Documents 
-                  for their document management needs.
+                  {/* Join thousands of legal professionals who trust ARC Documents 
+                  for their document management needs. */}
                 </p>
                 <Link
                   to="/generate"

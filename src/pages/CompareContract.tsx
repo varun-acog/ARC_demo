@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GitCompare, Upload, FileText, Plus, Minus, CheckCircle, MessageSquare, ArrowRight, Download, X } from 'lucide-react';
+import { GitCompare, Upload, FileText, Plus, Minus, CheckCircle, MessageSquare, ArrowRight, Download, X, Shield, Scale } from 'lucide-react';
 
 interface Change {
   id: string;
@@ -10,6 +10,7 @@ interface Change {
   summary: string;
   legalOpinion: string;
   precedence: string;
+  policyViolations: string;
   status?: 'approved' | 'referred' | 'pending';
   remarks?: string;
 }
@@ -89,8 +90,9 @@ const CompareContract: React.FC = () => {
       oldText: 'Payment due within 30 days of invoice date',
       newText: 'Payment due within 45 days of invoice date',
       summary: 'Payment terms extended from 30 to 45 days',
-      legalOpinion: 'This change increases cash flow risk but may improve client relationships. Consider adding early payment discounts.',
-      precedence: 'Similar extension was accepted by Microsoft in 2023 contract negotiations, but rejected by Google in 2024 due to cash flow concerns.',
+      legalOpinion: 'This change increases cash flow risk but may improve client relationships. Consider adding early payment discounts to mitigate extended terms.',
+      precedence: 'Similar extension was accepted by Microsoft in 2023 contract negotiations, but rejected by Google in 2024 due to cash flow concerns. Amazon accepted 45-day terms with 2% early payment discount in Q3 2024.',
+      policyViolations: 'No policy violations detected. Change aligns with company payment policy guidelines for enterprise clients.',
       status: 'pending'
     },
     {
@@ -99,8 +101,9 @@ const CompareContract: React.FC = () => {
       section: 'Section 7.4 - Force Majeure',
       newText: 'Including pandemics and cyber security incidents as force majeure events',
       summary: 'Added pandemic and cyber incidents to force majeure clause',
-      legalOpinion: 'Highly recommended addition given recent global events. Provides protection against unforeseeable circumstances.',
-      precedence: 'This clause has been standard practice since 2020. Accepted by 95% of Fortune 500 companies in recent contracts.',
+      legalOpinion: 'Highly recommended addition given recent global events. Provides essential protection against unforeseeable circumstances that could impact service delivery.',
+      precedence: 'This clause has been standard practice since 2020. Accepted by 95% of Fortune 500 companies in recent contracts including Apple, Tesla, and Meta.',
+      policyViolations: 'No violations. Addition strongly recommended by legal department policy updates from 2021.',
       status: 'pending'
     },
     {
@@ -109,8 +112,9 @@ const CompareContract: React.FC = () => {
       section: 'Section 5.1 - Liability Cap',
       oldText: 'Liability limited to 2x annual contract value',
       summary: 'Removed liability cap limitation',
-      legalOpinion: 'Critical risk: Removing liability cap exposes organization to unlimited damages. Strongly recommend maintaining reasonable cap.',
-      precedence: 'Unlimited liability was rejected by Apple in 2023 and Tesla in 2024. Industry standard maintains 1-2x contract value cap.',
+      legalOpinion: 'CRITICAL RISK: Removing liability cap exposes organization to unlimited damages. This creates significant financial exposure and should be strongly reconsidered.',
+      precedence: 'Unlimited liability was rejected by Apple in 2023 and Tesla in 2024. Industry standard maintains 1-2x contract value cap. Only 3% of enterprise contracts accept unlimited liability.',
+      policyViolations: 'MAJOR VIOLATION: Contradicts company risk management policy which mandates liability caps not exceed 3x annual contract value. Requires C-level approval.',
       status: 'pending'
     },
     {
@@ -119,8 +123,9 @@ const CompareContract: React.FC = () => {
       section: 'Section 9 - Data Protection',
       newText: 'GDPR and CCPA compliance requirements with annual audits',
       summary: 'Added comprehensive data protection compliance requirements',
-      legalOpinion: 'Essential addition for data handling agreements. Ensures regulatory compliance and reduces legal exposure.',
-      precedence: 'Standard requirement accepted by all major tech companies since GDPR implementation in 2018.',
+      legalOpinion: 'Essential addition for data handling agreements. Ensures regulatory compliance and significantly reduces legal exposure in data processing activities.',
+      precedence: 'Standard requirement accepted by all major tech companies since GDPR implementation in 2018. Microsoft, Google, and Amazon all include similar clauses.',
+      policyViolations: 'No violations. Addition aligns with corporate data governance policy and regulatory compliance requirements.',
       status: 'pending'
     }
   ];
@@ -221,19 +226,6 @@ const CompareContract: React.FC = () => {
     }
   };
 
-  const getChangeColor = (type: string) => {
-    switch (type) {
-      case 'addition':
-        return 'border-green-200 bg-green-50';
-      case 'deletion':
-        return 'border-red-200 bg-red-50';
-      case 'modification':
-        return 'border-blue-200 bg-blue-50';
-      default:
-        return 'border-gray-200 bg-gray-50';
-    }
-  };
-
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'approved':
@@ -243,6 +235,50 @@ const CompareContract: React.FC = () => {
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const renderTextComparison = (oldText?: string, newText?: string, type?: string) => {
+    if (type === 'addition' && newText) {
+      return (
+        <div className="bg-white border border-gray-200 rounded p-3">
+          <h5 className="text-sm font-medium text-gray-800 mb-2">Added Text</h5>
+          <p className="text-sm">
+            <span className="bg-green-100 text-green-800 px-1 rounded">{newText}</span>
+          </p>
+        </div>
+      );
+    }
+
+    if (type === 'deletion' && oldText) {
+      return (
+        <div className="bg-white border border-gray-200 rounded p-3">
+          <h5 className="text-sm font-medium text-gray-800 mb-2">Deleted Text</h5>
+          <p className="text-sm">
+            <span className="bg-red-100 text-red-800 line-through px-1 rounded">{oldText}</span>
+          </p>
+        </div>
+      );
+    }
+
+    if (type === 'modification' && oldText && newText) {
+      return (
+        <div className="bg-white border border-gray-200 rounded p-3">
+          <h5 className="text-sm font-medium text-gray-800 mb-2">Text Changes</h5>
+          <div className="space-y-2">
+            <p className="text-sm">
+              <span className="text-gray-600 text-xs block mb-1">Original:</span>
+              <span className="bg-red-100 text-red-800 line-through px-1 rounded">{oldText}</span>
+            </p>
+            <p className="text-sm">
+              <span className="text-gray-600 text-xs block mb-1">Modified:</span>
+              <span className="bg-green-100 text-green-800 px-1 rounded">{newText}</span>
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -352,7 +388,7 @@ const CompareContract: React.FC = () => {
                 {changes.map((change) => (
                   <div
                     key={change.id}
-                    className={`border rounded-lg p-6 ${getChangeColor(change.type)}`}
+                    className="border border-gray-200 rounded-lg p-6 bg-white"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-3">
@@ -366,35 +402,53 @@ const CompareContract: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-4 mb-4">
-                      {change.oldText && (
-                        <div className="bg-red-50 border border-red-200 rounded p-3">
-                          <h5 className="text-sm font-medium text-red-800 mb-1">Original</h5>
-                          <p className="text-sm text-red-700">{change.oldText}</p>
-                        </div>
-                      )}
-                      {change.newText && (
-                        <div className="bg-green-50 border border-green-200 rounded p-3">
-                          <h5 className="text-sm font-medium text-green-800 mb-1">New</h5>
-                          <p className="text-sm text-green-700">{change.newText}</p>
-                        </div>
-                      )}
+                    {/* Text Comparison */}
+                    <div className="mb-4">
+                      {renderTextComparison(change.oldText, change.newText, change.type)}
                     </div>
 
-                    <div className="bg-white rounded-lg p-4 mb-4">
-                      <h5 className="font-medium text-gray-900 mb-2">AI Insights</h5>
-                      <div className="space-y-3">
-                        <div>
-                          <h6 className="text-sm font-medium text-gray-700">Summary</h6>
-                          <p className="text-sm text-gray-600">{change.summary}</p>
+                    {/* AI Insights */}
+                    <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                      <h5 className="font-medium text-gray-900 mb-4 flex items-center space-x-2">
+                        <Scale className="w-4 h-4" />
+                        <span>AI Insights</span>
+                      </h5>
+                      
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {/* Left Column - Summary & Legal Opinion */}
+                        <div className="space-y-4">
+                          <div>
+                            <h6 className="text-sm font-medium text-gray-700 mb-2">Summary</h6>
+                            <p className="text-sm text-gray-600 bg-white p-3 rounded border">{change.summary}</p>
+                          </div>
+                          <div>
+                            <h6 className="text-sm font-medium text-gray-700 mb-2">Legal Opinion</h6>
+                            <p className="text-sm text-gray-600 bg-white p-3 rounded border">{change.legalOpinion}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h6 className="text-sm font-medium text-gray-700">Legal Opinion</h6>
-                          <p className="text-sm text-gray-600">{change.legalOpinion}</p>
-                        </div>
-                        <div>
-                          <h6 className="text-sm font-medium text-gray-700">Precedence</h6>
-                          <p className="text-sm text-gray-600">{change.precedence}</p>
+
+                        {/* Right Column - Precedence & Policy Violations */}
+                        <div className="space-y-4">
+                          <div>
+                            <h6 className="text-sm font-medium text-gray-700 mb-2 flex items-center space-x-1">
+                              <FileText className="w-3 h-3" />
+                              <span>Precedence</span>
+                            </h6>
+                            <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded border border-blue-200">{change.precedence}</p>
+                          </div>
+                          <div>
+                            <h6 className="text-sm font-medium text-gray-700 mb-2 flex items-center space-x-1">
+                              <Shield className="w-3 h-3" />
+                              <span>Policy Violations</span>
+                            </h6>
+                            <p className={`text-sm p-3 rounded border ${
+                              change.policyViolations.includes('VIOLATION') || change.policyViolations.includes('MAJOR')
+                                ? 'bg-red-50 text-red-700 border-red-200'
+                                : 'bg-green-50 text-green-700 border-green-200'
+                            }`}>
+                              {change.policyViolations}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>

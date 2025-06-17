@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { FileText, Download, Calendar, Building, User, Clock, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { FileText, Download, Calendar, Building, User, Clock, AlertCircle, ArrowRight } from 'lucide-react';
+import { useDocuments } from '../contexts/DocumentContext';
 
 interface FormData {
   templateType: string;
@@ -11,6 +13,8 @@ interface FormData {
 }
 
 const GenerateDocument: React.FC = () => {
+  const navigate = useNavigate();
+  const { addDocument, setCurrentDocument } = useDocuments();
   const [formData, setFormData] = useState<FormData>({
     templateType: '',
     enterpriseName: '',
@@ -21,6 +25,7 @@ const GenerateDocument: React.FC = () => {
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedDocument, setGeneratedDocument] = useState<any>(null);
 
   const templates = [
     { value: 'msa', label: 'Master Service Agreement (MSA)' },
@@ -47,9 +52,9 @@ const GenerateDocument: React.FC = () => {
     
     // Simulate document generation
     setTimeout(() => {
-      // Create a blob for Word document download
+      const templateLabel = templates.find(t => t.value === formData.templateType)?.label || '';
       const content = `
-        ${templates.find(t => t.value === formData.templateType)?.label}
+        ${templateLabel}
         
         Enterprise: ${formData.enterpriseName}
         Client: ${formData.clientName}
@@ -59,19 +64,54 @@ const GenerateDocument: React.FC = () => {
         
         [Document content would be generated here based on the template...]
       `;
+
+      const documentId = `doc_${Date.now()}`;
+      const documentName = `${formData.templateType}_${formData.clientName}_${new Date().toISOString().split('T')[0]}`;
       
+      // Create document blob for download
       const blob = new Blob([content], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-      const url = URL.createObjectURL(blob);
+      const file = new File([blob], `${documentName}.docx`, { type: blob.type });
+
+      const document = {
+        id: documentId,
+        name: documentName,
+        type: formData.templateType,
+        content: content,
+        metadata: {
+          templateType: formData.templateType,
+          enterpriseName: formData.enterpriseName,
+          clientName: formData.clientName,
+          effectiveDate: formData.effectiveDate,
+          contractValidation: formData.contractValidation,
+          noticePeriod: formData.noticePeriod,
+          generatedAt: new Date().toISOString()
+        },
+        file: file
+      };
+
+      // Add to context
+      addDocument(document);
+      setCurrentDocument(document);
+      setGeneratedDocument(document);
+      setIsGenerating(false);
+    }, 2000);
+  };
+
+  const handleDownload = () => {
+    if (generatedDocument?.file) {
+      const url = URL.createObjectURL(generatedDocument.file);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${formData.templateType}_${formData.clientName}_${new Date().toISOString().split('T')[0]}.docx`;
+      a.download = generatedDocument.file.name;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
-      setIsGenerating(false);
-    }, 2000);
+    }
+  };
+
+  const handleReviewDocument = () => {
+    navigate('/review');
   };
 
   return (
@@ -223,6 +263,35 @@ const GenerateDocument: React.FC = () => {
                 </>
               )}
             </button>
+
+            {/* Success Actions */}
+            {generatedDocument && (
+              <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center space-x-2 mb-3">
+                  <FileText className="w-5 h-5 text-green-600" />
+                  <span className="font-medium text-green-800">Document Generated Successfully!</span>
+                </div>
+                <p className="text-sm text-green-700 mb-4">
+                  Your {templates.find(t => t.value === generatedDocument.type)?.label} has been generated and is ready for download or review.
+                </p>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleDownload}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center space-x-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download</span>
+                  </button>
+                  <button
+                    onClick={handleReviewDocument}
+                    className="bg-teal-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-teal-700 transition-colors flex items-center space-x-2"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                    <span>Review Document</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

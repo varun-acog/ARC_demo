@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Scale, Upload, FileText, CheckCircle, AlertTriangle, ArrowRight } from 'lucide-react';
+import { useDocuments } from '../contexts/DocumentContext';
 
 interface EvaluationQuestion {
   id: string;
@@ -9,10 +11,13 @@ interface EvaluationQuestion {
 }
 
 const ReviewContract: React.FC = () => {
+  const navigate = useNavigate();
+  const { currentDocument, addDocument, setCurrentDocument } = useDocuments();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [contractType, setContractType] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [evaluation, setEvaluation] = useState<EvaluationQuestion[]>([]);
+  const [analyzedDocument, setAnalyzedDocument] = useState<any>(null);
 
   const contractTypes = [
     { value: 'msa', label: 'Master Service Agreement (MSA)' },
@@ -74,13 +79,39 @@ const ReviewContract: React.FC = () => {
         answer: 'Critical concern: 10-year confidentiality period is excessive for this type of business relationship.',
         status: 'critical'
       }
+    ],
+    sla: [
+      {
+        id: '1',
+        question: 'Are service level metrics clearly defined?',
+        answer: 'Yes, uptime requirements, response times, and performance metrics are well-documented.',
+        status: 'good'
+      },
+      {
+        id: '2',
+        question: 'Are penalties and remedies appropriate?',
+        answer: 'Service credits are reasonable but escalation procedures could be more detailed.',
+        status: 'warning'
+      }
     ]
   };
+
+  // Check if there's a current document from generation
+  useEffect(() => {
+    if (currentDocument && !selectedFile) {
+      setContractType(currentDocument.type);
+      setSelectedFile(currentDocument.file || null);
+    }
+  }, [currentDocument, selectedFile]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
+      // Clear current document if user uploads a new file
+      if (currentDocument) {
+        setCurrentDocument(null);
+      }
     }
   };
 
@@ -96,8 +127,31 @@ const ReviewContract: React.FC = () => {
     setTimeout(() => {
       const mockEvaluation = mockEvaluations[contractType] || mockEvaluations.msa;
       setEvaluation(mockEvaluation);
+      
+      // Create analyzed document
+      const documentId = currentDocument?.id || `analyzed_${Date.now()}`;
+      const analyzedDoc = {
+        id: documentId,
+        name: selectedFile.name.replace(/\.[^/.]+$/, ""),
+        type: contractType,
+        content: currentDocument?.content || 'Document content...',
+        metadata: {
+          ...currentDocument?.metadata,
+          analyzedAt: new Date().toISOString()
+        },
+        file: selectedFile,
+        evaluation: mockEvaluation
+      };
+
+      addDocument(analyzedDoc);
+      setCurrentDocument(analyzedDoc);
+      setAnalyzedDocument(analyzedDoc);
       setIsAnalyzing(false);
     }, 3000);
+  };
+
+  const handleCompareDocument = () => {
+    navigate('/compare');
   };
 
   const getStatusIcon = (status: string) => {
@@ -110,19 +164,6 @@ const ReviewContract: React.FC = () => {
         return <AlertTriangle className="w-5 h-5 text-red-500" />;
       default:
         return null;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'good':
-        return 'border-green-200 bg-green-50';
-      case 'warning':
-        return 'border-yellow-200 bg-yellow-50';
-      case 'critical':
-        return 'border-red-200 bg-red-50';
-      default:
-        return 'border-gray-200 bg-gray-50';
     }
   };
 
@@ -139,6 +180,19 @@ const ReviewContract: React.FC = () => {
               <p className="text-gray-600">Upload and analyze contracts with AI-powered evaluation</p>
             </div>
           </div>
+
+          {/* Show current document info if coming from generation */}
+          {currentDocument && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <FileText className="w-5 h-5 text-blue-600" />
+                <span className="font-medium text-blue-800">Document from Generation</span>
+              </div>
+              <p className="text-sm text-blue-700 mt-1">
+                Ready to analyze: {currentDocument.name} ({contractTypes.find(t => t.value === currentDocument.type)?.label})
+              </p>
+            </div>
+          )}
 
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Upload Section */}
@@ -216,7 +270,7 @@ const ReviewContract: React.FC = () => {
                     {evaluation.map((item) => (
                       <div
                         key={item.id}
-                        className={`border rounded-lg p-4 ${getStatusColor(item.status)}`}
+                        className="border border-gray-200 rounded-lg p-4 bg-white"
                       >
                         <div className="flex items-start space-x-3">
                           {getStatusIcon(item.status)}
@@ -229,15 +283,22 @@ const ReviewContract: React.FC = () => {
                     ))}
                   </div>
                   
-                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <ArrowRight className="w-5 h-5 text-blue-600" />
-                      <span className="font-medium text-blue-900">Next Step</span>
+                  <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <ArrowRight className="w-5 h-5 text-purple-600" />
+                      <span className="font-medium text-purple-900">Next Step</span>
                     </div>
-                    <p className="text-sm text-blue-700 mt-2">
-                      Need to compare this contract with another version? Use our Contract Comparison tool 
+                    <p className="text-sm text-purple-700 mb-4">
+                      Ready to compare this contract with another version? Use our Contract Comparison tool 
                       to identify changes and get detailed AI insights.
                     </p>
+                    <button
+                      onClick={handleCompareDocument}
+                      className="bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center space-x-2"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                      <span>Compare Document</span>
+                    </button>
                   </div>
                 </div>
               )}

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GitCompare, Upload, FileText, Plus, Minus, CheckCircle, MessageSquare, ArrowRight, Download, X, Shield, Scale } from 'lucide-react';
+import { useDocuments } from '../contexts/DocumentContext';
 
 interface Change {
   id: string;
@@ -73,6 +74,7 @@ const RemarkModal: React.FC<RemarkModalProps> = ({ isOpen, onClose, onSubmit, ch
 };
 
 const CompareContract: React.FC = () => {
+  const { currentDocument } = useDocuments();
   const [originalFile, setOriginalFile] = useState<File | null>(null);
   const [compareFile, setCompareFile] = useState<File | null>(null);
   const [isComparing, setIsComparing] = useState(false);
@@ -129,6 +131,13 @@ const CompareContract: React.FC = () => {
       status: 'pending'
     }
   ];
+
+  // Auto-populate compare file if coming from review
+  useEffect(() => {
+    if (currentDocument && currentDocument.file && !compareFile) {
+      setCompareFile(currentDocument.file);
+    }
+  }, [currentDocument, compareFile]);
 
   const handleFileUpload = (type: 'original' | 'compare') => (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -294,6 +303,19 @@ const CompareContract: React.FC = () => {
               <p className="text-gray-600">Compare document versions with AI-powered insights and approval workflow</p>
             </div>
           </div>
+
+          {/* Show current document info if coming from review */}
+          {currentDocument && (
+            <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <FileText className="w-5 h-5 text-purple-600" />
+                <span className="font-medium text-purple-800">Document from Review</span>
+              </div>
+              <p className="text-sm text-purple-700 mt-1">
+                Ready to compare: {currentDocument.name} - Upload the original document to compare against
+              </p>
+            </div>
+          )}
 
           {/* Upload Section */}
           <div className="grid md:grid-cols-2 gap-6 mb-8">
